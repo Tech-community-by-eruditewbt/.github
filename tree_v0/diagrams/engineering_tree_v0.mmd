@@ -1,0 +1,52 @@
+flowchart TD
+
+    root["Engineering Tree v0"]
+
+    trunk["Trunk Foundations"]
+
+    software["Software Systems"]
+    embedded["Embedded & Hardware"]
+    energy["Energy & Automation"]
+    data["Data & AI"]
+
+    projS["Projects & Proof"]
+    projE["Projects & Proof"]
+    projG["Projects & Proof"]
+    projD["Projects & Proof"]
+
+    monetization["Monetization Ladder"]
+    opportunity["Economic Opportunity"]
+
+    root --> trunk
+
+    trunk --> software
+    trunk --> embedded
+    trunk --> energy
+    trunk --> data
+
+    software --> projS
+    embedded --> projE
+    energy --> projG
+    data --> projD
+
+    projS --> monetization
+    projE --> monetization
+    projG --> monetization
+    projD --> monetization
+
+    monetization --> opportunity
+
+    %% Styles
+    classDef rootStyle fill:#0b0f19,color:#ffffff,stroke:#1e293b,stroke-width:3px;
+    classDef trunkStyle fill:#1f2937,color:#ffffff,stroke:#374151,stroke-width:2px;
+    classDef branchStyle fill:#0ea5e9,color:#ffffff,stroke:#0369a1,stroke-width:2px;
+    classDef projectStyle fill:#10b981,color:#ffffff,stroke:#047857,stroke-width:2px;
+    classDef moneyStyle fill:#f59e0b,color:#111827,stroke:#b45309,stroke-width:2px;
+    classDef opportunityStyle fill:#7c3aed,color:#ffffff,stroke:#4c1d95,stroke-width:2px;
+
+    class root rootStyle
+    class trunk trunkStyle
+    class software,embedded,energy,data branchStyle
+    class projS,projE,projG,projD projectStyle
+    class monetization moneyStyle
+    class opportunity opportunityStyle
