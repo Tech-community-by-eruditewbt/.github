@@ -1,10 +1,13 @@
-# Engineering Tree Community
+# Civilization Graph Community
 
 _Powered by EruditeWBT_
 
-A builder ecosystem designed to transform curiosity into **engineering power and income**.
+A global learning ecosystem helping people understand **how the modern world works** — and how to grow within it.
 
-Engineering Tree Community is a builder ecosystem designed to transform curiosity into engineering power and economic opportunity through real systems, projects, and collaboration.
+This repo is both:
+
+- a **map** (Civilization Graph)
+- a **path** (Engineering Tree + projects)
 
 ---
 
@@ -12,15 +15,42 @@ Engineering Tree Community is a builder ecosystem designed to transform curiosit
 
 Most people learn technology by consuming tutorials.
 
-But civilization is built by **engineers who create systems**.
+But the modern world is built by people who can **understand systems** and **build outcomes**.
 
 This community exists to help people move from:
 
-User → Builder → Engineer → Architect → Founder.
+Confusion → Clarity → Skill → Opportunity → Contribution.
+
+Core translation formula:
+
+`Field → Role → Skills → Tools → Projects → Income`
+
+## Is This For Me?
+
+Yes — if you’re a student, non‑tech professional, artist, healthcare worker, business operator, or engineer and you want a clear map + path.
 
 ---
 
-## The Engineering Tree
+## Civilization Graph (The Map)
+
+This repo ships a **civilization-scale occupation graph** (O*NET-powered) plus a web viewer.
+
+- Web viewer: `docs/graph.html`
+- Guided entry point: `docs/START.html`
+- Exports: `civilization_graph/exports/global_v2_web/`
+
+How to use it:
+
+- `community_guides/HOW_TO_USE_THE_GRAPH.md`
+- `civilization_graph/HOW_TO_READ_THE_GRAPH.md`
+
+Data sources & scope:
+
+- `civilization_graph/DATA_SOURCES.md`
+
+---
+
+## Engineering Tree (The Path)
 
 Everyone begins with a shared foundation.
 
@@ -68,22 +98,16 @@ Freelancing → Consulting → Products → Startups.
 
 1. Read the Manifesto  
    `manifesto/BUILDER_MANIFESTO.md`
-2. Understand the Tree  
-   `tree_v0/ENGINEERING_TREE_V0.md`
-3. Introduce Yourself  
-   `builders/profile_template.md`
-4. Start a Project  
-   `projects/project_template.md`
+2. Guided entry point  
+   `docs/START.html`
+3. New member checklist  
+   `community_guides/START_HERE.md`
+4. Pick a project track  
+   `projects/tracks/`
 
-If you want a guided first experience:
-
-- Guided entry point: `docs/START.html`
+Also:
 - Ultra-simple onboarding: `START.md`
 - Full repo map: `README_MAP.md`
-
-Core translation formula:
-
-`Field → Role → Skills → Tools → Projects → Income`
 
 ---
 
@@ -96,18 +120,6 @@ Core translation formula:
 - LinkedIn (Founder): https://www.linkedin.com/in/chemiosis-daniel-34542826a
 
 ---
-
-## Civilization Graph (Occupations)
-
-This repo ships a **civilization-scale occupation graph** (O*NET-powered) plus a web viewer.
-
-- Web viewer: `docs/graph.html`
-- Exports: `civilization_graph/exports/global_v2_web/`
-
-How to use it:
-
-- `community_guides/HOW_TO_USE_THE_GRAPH.md`
-- `civilization_graph/HOW_TO_READ_THE_GRAPH.md`
 
 ---
 

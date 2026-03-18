@@ -8,6 +8,9 @@
   const typeEl = document.getElementById("type");
   const modeEl = document.getElementById("mode");
   const resetEl = document.getElementById("reset");
+  const randomEl = document.getElementById("random");
+  const copyLinkEl = document.getElementById("copyLink");
+  const pathEl = document.getElementById("path");
 
   const COLORS = {
     occupation: "#27d0a0",
@@ -79,6 +82,36 @@
       adj.get(a).add(b);
       adj.get(b).add(a);
     }
+  }
+
+  function edgeListFor(id) {
+    const out = [];
+    for (const e of links) {
+      if (e.source === id || e.target === id) out.push(e);
+    }
+    return out;
+  }
+
+  function setHashForNode(id) {
+    try {
+      if (!id) {
+        history.replaceState(null, "", location.pathname + location.search);
+        return;
+      }
+      const h = `#node=${encodeURIComponent(id)}`;
+      history.replaceState(null, "", h);
+    } catch (_) {}
+  }
+
+  function parseHashNode() {
+    const h = (location.hash || "").replace(/^#/, "");
+    if (!h) return null;
+    const parts = h.split("&");
+    for (const p of parts) {
+      const [k, v] = p.split("=");
+      if (k === "node" && v) return decodeURIComponent(v);
+    }
+    return null;
   }
 
   function pickNode(mx, my) {
@@ -293,6 +326,7 @@
     if (!selectedEl) return;
     if (!n) {
       selectedEl.textContent = "Click a node to inspect it.";
+      if (pathEl) pathEl.textContent = "Select an occupation to get suggested pillars and project tracks.";
       return;
     }
     const deg = adj.get(n.id)?.size || 0;
@@ -303,6 +337,15 @@
     bits.push(`<b>Degree:</b> ${deg}`);
     if (n.description) bits.push(`<b>Description:</b> ${escapeHtml(n.description)}`);
     selectedEl.innerHTML = bits.join("<br/>");
+
+    // Path suggestions (only for occupations)
+    if (pathEl) {
+      if (n.type !== "occupation") {
+        pathEl.textContent = "Select an occupation to get suggested pillars and project tracks.";
+      } else {
+        pathEl.innerHTML = buildPathHtml(n.id);
+      }
+    }
   }
 
   function escapeHtml(s) {
@@ -339,7 +382,109 @@
     scale = 1;
     panX = W * 0.5;
     panY = H * 0.5;
+    setHashForNode(null);
     setSelected(null);
+  }
+
+  function pinNode(n) {
+    if (!n) return;
+    pinnedId = n.id;
+    setSelected(n);
+    setHashForNode(n.id);
+    // center view
+    panX = W * 0.5 - n.x * scale;
+    panY = H * 0.5 - n.y * scale;
+  }
+
+  function buildPathHtml(occId) {
+    // Pillars by explicit digitized_by edges
+    const pillarScores = new Map(); // pillarId -> score
+    const relatedOcc = [];
+
+    for (const e of links) {
+      if (e.source === occId && e.relation === "digitized_by") {
+        const tgt = nodeById.get(e.target);
+        if (tgt && tgt.type === "computing_pillar") {
+          pillarScores.set(tgt.id, (pillarScores.get(tgt.id) || 0) + (e.weight || 1));
+        }
+      }
+      if (e.source === occId && e.relation === "related_occupation") {
+        const tgt = nodeById.get(e.target);
+        if (tgt && tgt.type === "occupation") relatedOcc.push(tgt);
+      }
+      if (e.target === occId && e.relation === "related_occupation") {
+        const src = nodeById.get(e.source);
+        if (src && src.type === "occupation") relatedOcc.push(src);
+      }
+    }
+
+    const topPillars = Array.from(pillarScores.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([id, score]) => ({ n: nodeById.get(id), score }));
+
+    // Tracks based on pillars
+    const trackLinks = [];
+    const base = "https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/blob/main/projects/tracks/";
+
+    const addTrack = (file, label) => trackLinks.push({ file, label });
+
+    const pillarIds = topPillars.map((p) => p.n?.id).filter(Boolean);
+    if (pillarIds.some((x) => x === "pill:ai")) addTrack("ai_projects.md", "AI projects");
+    if (pillarIds.some((x) => x === "pill:data")) addTrack("industry_projects.md", "Industry projects");
+    if (pillarIds.some((x) => x === "pill:cloud" || x === "pill:security" || x === "pill:networks"))
+      addTrack("beginner_projects.md", "Beginner projects");
+    if (pillarIds.some((x) => x === "pill:automation")) addTrack("industry_projects.md", "Automation/industry projects");
+
+    // Always include a fast-start option
+    addTrack("beginner_projects.md", "Fast-start projects");
+
+    // de-dupe tracks by file
+    const seen = new Set();
+    const uniqTracks = [];
+    for (const t of trackLinks) {
+      if (seen.has(t.file)) continue;
+      seen.add(t.file);
+      uniqTracks.push(t);
+    }
+
+    const escape = escapeHtml;
+    const parts = [];
+
+    parts.push(`<b>Next step:</b> pick one pillar, then ship one small project this week.`);
+    parts.push(`<br/><br/><b>Top pillars:</b>`);
+    if (!topPillars.length) {
+      parts.push(`<br/>No pillar scores found for this node in the web build.`);
+    } else {
+      for (const p of topPillars) {
+        parts.push(`<br/>• ${escape(p.n?.label || "Pillar")} <span style="opacity:.7">(${p.score.toFixed(1)})</span>`);
+      }
+    }
+
+    parts.push(`<br/><br/><b>Suggested tracks:</b>`);
+    for (const t of uniqTracks.slice(0, 3)) {
+      parts.push(`<br/>• <a class="inline" href="${base + t.file}" target="_blank" rel="noreferrer">${escape(t.label)}</a>`);
+    }
+
+    if (relatedOcc.length) {
+      const uniq = [];
+      const seen2 = new Set();
+      for (const o of relatedOcc) {
+        if (seen2.has(o.id)) continue;
+        seen2.add(o.id);
+        uniq.push(o);
+        if (uniq.length >= 6) break;
+      }
+      parts.push(`<br/><br/><b>Adjacent roles:</b>`);
+      for (const o of uniq) {
+        parts.push(`<br/>• ${escape(o.label || o.id)}`);
+      }
+    }
+
+    parts.push(
+      `<br/><br/><span style="opacity:.75">Formula:</span> <span style="font-weight:900">Field → Role → Skills → Tools → Projects → Income</span>`
+    );
+    return parts.join("");
   }
 
   function normalizeData(raw) {
@@ -381,6 +526,14 @@
     const res = await fetch("assets/graph/graph.json", { cache: "no-store" });
     const raw = await res.json();
     normalizeData(raw);
+
+    // If URL specifies a node, pin it.
+    const hashNode = parseHashNode();
+    if (hashNode && nodeById.has(hashNode)) {
+      pinNode(nodeById.get(hashNode));
+      scale = 1.2;
+    }
+
     schedule();
   }
 
@@ -438,8 +591,7 @@
     const my = e.clientY - rect.top;
     const picked = pickNode(mx, my);
     if (!picked) return;
-    pinnedId = picked.id;
-    setSelected(picked);
+    pinNode(picked);
   });
 
   canvas.addEventListener(
@@ -466,11 +618,7 @@
     if (e.key !== "Enter") return;
     const n = applySearch();
     if (n) {
-      pinnedId = n.id;
-      setSelected(n);
-      // center view on selected
-      panX = W * 0.5 - n.x * scale;
-      panY = H * 0.5 - n.y * scale;
+      pinNode(n);
     }
   });
 
@@ -486,6 +634,26 @@
     resetView();
   });
 
+  randomEl?.addEventListener("click", () => {
+    const occ = nodes.filter((n) => n.type === "occupation");
+    if (!occ.length) return;
+    const pick = occ[Math.floor(Math.random() * occ.length)];
+    pinNode(pick);
+  });
+
+  copyLinkEl?.addEventListener("click", async () => {
+    const url = location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      if (countsEl) countsEl.textContent = "Link copied.";
+      window.setTimeout(() => {
+        if (countsEl) countsEl.textContent = `${visibleNodes().length} nodes shown · ${visibleLinks(visibleNodes()).length} links shown`;
+      }, 1200);
+    } catch (_) {
+      if (countsEl) countsEl.textContent = "Copy failed.";
+    }
+  });
+
   window.addEventListener("resize", resize);
 
   load().catch((err) => {
@@ -493,4 +661,3 @@
     if (selectedEl) selectedEl.textContent = String(err);
   });
 })();
-

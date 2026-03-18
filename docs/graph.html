@@ -35,6 +35,7 @@
         <nav class="nav" aria-label="Primary">
           <a class="nav__link" href="./">Home</a>
           <a class="nav__link" href="./START.html">Start</a>
+          <a class="nav__link" href="./what.html">What Is This?</a>
           <a class="nav__link" href="https://discord.gg/8e4bQNknA" target="_blank" rel="noreferrer">Discord</a>
           <a class="nav__link" href="https://www.youtube.com/@eruditewbt" target="_blank" rel="noreferrer">YouTube</a>
         </nav>
@@ -68,6 +69,8 @@
             </select>
           </div>
           <button class="btn btn--quiet" id="reset" type="button">Reset</button>
+          <button class="btn btn--ghost" id="random" type="button">Random Occupation</button>
+          <button class="btn btn--quiet" id="copyLink" type="button">Copy Link</button>
         </div>
       </div>
 
@@ -94,12 +97,21 @@
           <div class="kv" id="selected">Click a node to inspect it.</div>
         </div>
         <div class="box">
-          <div class="box__t">Data</div>
+          <div class="box__t">Find Your Path</div>
+          <div class="kv" id="path">
+            Select an occupation to get suggested pillars and project tracks.
+          </div>
+        </div>
+        <div class="box">
+          <div class="box__t">Downloads</div>
           <div class="kv">
-            This web graph is a curated export built from O*NET tables (occupations, tools/tech, related occupations,
-            industry divisions) plus a computing pillar layer.
+            <a class="inline" href="assets/graph/exports/graph.graphml" download>GraphML</a>
+            <br />
+            <a class="inline" href="assets/graph/exports/nodes.jsonl" download>Nodes (JSONL)</a>
+            <br />
+            <a class="inline" href="assets/graph/exports/edges.jsonl" download>Edges (JSONL)</a>
             <br /><br />
-            Repo exports: <b>civilization_graph/exports/global_v2_web/</b>
+            Data sources: <a class="inline" href="https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/blob/main/civilization_graph/DATA_SOURCES.md" target="_blank" rel="noreferrer">DATA_SOURCES.md</a>
           </div>
         </div>
       </div>

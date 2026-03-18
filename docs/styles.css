@@ -457,6 +457,33 @@ a {
   gap: 12px;
 }
 
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.roadmap__card {
+  border: 1px solid rgba(232, 236, 245, 0.12);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 16px;
+}
+
+.roadmap__k {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(241, 198, 106, 0.86);
+  margin-bottom: 6px;
+}
+
+.roadmap__t {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
 .linkcard {
   text-decoration: none;
   border: 1px solid rgba(232, 236, 245, 0.12);
@@ -790,6 +817,10 @@ a {
   }
 
   .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .roadmap {
     grid-template-columns: 1fr;
   }
 
