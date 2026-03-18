@@ -30,7 +30,9 @@
   let links = [];
   let nodeById = new Map();
   let adj = new Map(); // id -> Set<neighborId>
+  let edgesByNode = new Map(); // id -> [{other, relation, weight, dir}]
   let pinnedId = null;
+  let lastPlanMd = "";
 
   // view transform (world -> screen)
   let scale = 1;
@@ -84,12 +86,25 @@
     }
   }
 
-  function edgeListFor(id) {
-    const out = [];
+  function buildEdgeIndex() {
+    edgesByNode = new Map();
+    for (const n of nodes) edgesByNode.set(n.id, []);
     for (const e of links) {
-      if (e.source === id || e.target === id) out.push(e);
+      if (!edgesByNode.has(e.source)) edgesByNode.set(e.source, []);
+      if (!edgesByNode.has(e.target)) edgesByNode.set(e.target, []);
+      edgesByNode.get(e.source).push({
+        other: e.target,
+        relation: e.relation || "",
+        weight: e.weight || 1,
+        dir: "out",
+      });
+      edgesByNode.get(e.target).push({
+        other: e.source,
+        relation: e.relation || "",
+        weight: e.weight || 1,
+        dir: "in",
+      });
     }
-    return out;
   }
 
   function setHashForNode(id) {
@@ -343,7 +358,18 @@
       if (n.type !== "occupation") {
         pathEl.textContent = "Select an occupation to get suggested pillars and project tracks.";
       } else {
-        pathEl.innerHTML = buildPathHtml(n.id);
+        const pg = window.PathGen;
+        if (!pg || typeof pg.generateCareerPath !== "function" || typeof pg.toMarkdown !== "function") {
+          pathEl.textContent = "Path generator not loaded.";
+          return;
+        }
+        const path = pg.generateCareerPath(n.id, { nodeById, edgesByNode });
+        if (!path) {
+          pathEl.textContent = "No path available for this node.";
+          return;
+        }
+        lastPlanMd = pg.toMarkdown(path);
+        pathEl.innerHTML = renderPathHtml(path);
       }
     }
   }
@@ -396,95 +422,72 @@
     panY = H * 0.5 - n.y * scale;
   }
 
-  function buildPathHtml(occId) {
-    // Pillars by explicit digitized_by edges
-    const pillarScores = new Map(); // pillarId -> score
-    const relatedOcc = [];
-
-    for (const e of links) {
-      if (e.source === occId && e.relation === "digitized_by") {
-        const tgt = nodeById.get(e.target);
-        if (tgt && tgt.type === "computing_pillar") {
-          pillarScores.set(tgt.id, (pillarScores.get(tgt.id) || 0) + (e.weight || 1));
-        }
-      }
-      if (e.source === occId && e.relation === "related_occupation") {
-        const tgt = nodeById.get(e.target);
-        if (tgt && tgt.type === "occupation") relatedOcc.push(tgt);
-      }
-      if (e.target === occId && e.relation === "related_occupation") {
-        const src = nodeById.get(e.source);
-        if (src && src.type === "occupation") relatedOcc.push(src);
-      }
-    }
-
-    const topPillars = Array.from(pillarScores.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([id, score]) => ({ n: nodeById.get(id), score }));
-
-    // Tracks based on pillars
-    const trackLinks = [];
-    const base = "https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/blob/main/projects/tracks/";
-
-    const addTrack = (file, label) => trackLinks.push({ file, label });
-
-    const pillarIds = topPillars.map((p) => p.n?.id).filter(Boolean);
-    if (pillarIds.some((x) => x === "pill:ai")) addTrack("ai_projects.md", "AI projects");
-    if (pillarIds.some((x) => x === "pill:data")) addTrack("industry_projects.md", "Industry projects");
-    if (pillarIds.some((x) => x === "pill:cloud" || x === "pill:security" || x === "pill:networks"))
-      addTrack("beginner_projects.md", "Beginner projects");
-    if (pillarIds.some((x) => x === "pill:automation")) addTrack("industry_projects.md", "Automation/industry projects");
-
-    // Always include a fast-start option
-    addTrack("beginner_projects.md", "Fast-start projects");
-
-    // de-dupe tracks by file
-    const seen = new Set();
-    const uniqTracks = [];
-    for (const t of trackLinks) {
-      if (seen.has(t.file)) continue;
-      seen.add(t.file);
-      uniqTracks.push(t);
-    }
-
+  function renderPathHtml(path) {
     const escape = escapeHtml;
-    const parts = [];
+    const bullets = (arr, max = 8) => {
+      const xs = (arr || []).slice(0, max);
+      if (!xs.length) return "<div style=\"opacity:.75\">(none)</div>";
+      return `<ul class="list">${xs.map((x) => `<li>${escape(x)}</li>`).join("")}</ul>`;
+    };
 
-    parts.push(`<b>Next step:</b> pick one pillar, then ship one small project this week.`);
-    parts.push(`<br/><br/><b>Top pillars:</b>`);
-    if (!topPillars.length) {
-      parts.push(`<br/>No pillar scores found for this node in the web build.`);
-    } else {
-      for (const p of topPillars) {
-        parts.push(`<br/>• ${escape(p.n?.label || "Pillar")} <span style="opacity:.7">(${p.score.toFixed(1)})</span>`);
-      }
-    }
+    const kvList = (arr, max = 6) => {
+      const xs = (arr || []).slice(0, max);
+      if (!xs.length) return "<span style=\"opacity:.75\">(none)</span>";
+      return xs.map((x) => escape(x)).join(", ");
+    };
 
-    parts.push(`<br/><br/><b>Suggested tracks:</b>`);
-    for (const t of uniqTracks.slice(0, 3)) {
-      parts.push(`<br/>• <a class="inline" href="${base + t.file}" target="_blank" rel="noreferrer">${escape(t.label)}</a>`);
-    }
+    const pillars = (path.pillars || []).slice(0, 4);
+    const pillarLine = pillars.length
+      ? pillars.map((p) => `${escape(p.label)} <span style="opacity:.7">(${Number(p.score).toFixed(1)})</span>`).join("<br/>• ")
+      : "(none)";
 
-    if (relatedOcc.length) {
-      const uniq = [];
-      const seen2 = new Set();
-      for (const o of relatedOcc) {
-        if (seen2.has(o.id)) continue;
-        seen2.add(o.id);
-        uniq.push(o);
-        if (uniq.length >= 6) break;
-      }
-      parts.push(`<br/><br/><b>Adjacent roles:</b>`);
-      for (const o of uniq) {
-        parts.push(`<br/>• ${escape(o.label || o.id)}`);
-      }
-    }
+    const industries = (path.industries || []).slice(0, 5).map((x) => `${escape(x.label)} <span style="opacity:.7">(${Number(x.weight).toFixed(1)}%)</span>`);
 
-    parts.push(
-      `<br/><br/><span style="opacity:.75">Formula:</span> <span style="font-weight:900">Field → Role → Skills → Tools → Projects → Income</span>`
-    );
-    return parts.join("");
+    const weeks = (path.plan_4_weeks || []).map((w) => {
+      const b = (w.bullets || []).map((x) => `<li>${escape(x)}</li>`).join("");
+      return `<div class="pathH">Week ${w.week}: ${escape(w.title)}</div><ul class="list">${b}</ul>`;
+    });
+
+    return `
+      <div><b>${escape(path.role)}</b>${path.code ? ` <span style="opacity:.75">(${escape(path.code)})</span>` : ""}</div>
+      <div style="opacity:.8; margin-top:6px"><b>Formula:</b> Field → Role → Skills → Tools → Projects → Income</div>
+
+      <div class="pathActions">
+        <button class="miniBtn" type="button" data-copy-plan="1">Copy Plan</button>
+        <a class="miniBtn" href="https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/tree/main/projects/tracks" target="_blank" rel="noreferrer">Open Tracks</a>
+        <a class="miniBtn" href="./START.html">Start</a>
+      </div>
+
+      <div class="pathH">Related fields</div>
+      <div>${kvList(path.fields, 8)}</div>
+
+      <div class="pathH">Top pillars</div>
+      <div>• ${pillarLine}</div>
+
+      <div class="pathH">Industries</div>
+      <div>${industries.length ? "• " + industries.join("<br/>• ") : "<span style=\"opacity:.75\">(none)</span>"}</div>
+
+      <div class="pathH">Technologies</div>
+      ${bullets(path.technologies, 8)}
+
+      <div class="pathH">Tools</div>
+      ${bullets(path.tools, 8)}
+
+      <div class="pathH">Skills (suggested)</div>
+      ${bullets(path.skills, 10)}
+
+      <div class="pathH">Projects (suggested)</div>
+      ${bullets(path.projects, 6)}
+
+      <div class="pathH">Income paths</div>
+      ${bullets(path.income_paths, 6)}
+
+      <div class="pathH">4-week plan</div>
+      ${weeks.join("")}
+
+      <div class="pathH">Provenance</div>
+      <div style="opacity:.78">${escape(path.provenance.scope)}<br/>${escape(path.provenance.note)}<br/><i>Not career advice.</i></div>
+    `;
   }
 
   function normalizeData(raw) {
@@ -515,6 +518,7 @@
     // drop links to missing nodes (just in case)
     links = links.filter((e) => nodeById.has(e.source) && nodeById.has(e.target));
     buildAdj();
+    buildEdgeIndex();
 
     if (countsEl) countsEl.textContent = `${nodes.length} nodes · ${links.length} links loaded`;
   }
@@ -536,6 +540,24 @@
 
     schedule();
   }
+
+  // Copy plan action (delegated)
+  document.addEventListener("click", async (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+    const btn = t.closest("[data-copy-plan]");
+    if (!btn) return;
+    if (!lastPlanMd) return;
+    try {
+      await navigator.clipboard.writeText(lastPlanMd);
+      if (countsEl) countsEl.textContent = "Plan copied.";
+      window.setTimeout(() => {
+        if (countsEl) countsEl.textContent = `${visibleNodes().length} nodes shown · ${visibleLinks(visibleNodes()).length} links shown`;
+      }, 1200);
+    } catch (_) {
+      if (countsEl) countsEl.textContent = "Copy failed.";
+    }
+  });
 
   // interactions
   let isPanning = false;
