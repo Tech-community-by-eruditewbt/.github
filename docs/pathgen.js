@@ -411,6 +411,22 @@
     lines.push(path.tools.map((x) => `- ${x}`).join("\n") || "- (none)");
     lines.push("");
 
+    if ((path.onet_skills || []).length) {
+      lines.push(`## O*NET Skills (Importance)`);
+      lines.push(path.onet_skills.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
+      lines.push("");
+    }
+    if ((path.onet_knowledge || []).length) {
+      lines.push(`## O*NET Knowledge (Importance)`);
+      lines.push(path.onet_knowledge.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
+      lines.push("");
+    }
+    if ((path.onet_abilities || []).length) {
+      lines.push(`## O*NET Abilities (Importance)`);
+      lines.push(path.onet_abilities.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
+      lines.push("");
+    }
+
     lines.push(`## Skills (Suggested)`);
     lines.push(path.skills.map((x) => `- ${x}`).join("\n") || "- (none)");
     lines.push("");
@@ -444,24 +460,226 @@
     return lines.join("\n");
   }
 
+  /**
+   * @typedef {{label:string, url:string}} SprintLink
+   * @typedef {{day:number, title:string, action:string, output:string, links:SprintLink[]}} SprintDay
+   * @typedef {{sprint_7_days:SprintDay[], roadmap_30_days:SprintDay[]}} GuidedModePlan
+   */
+
+  function _link(label, url) {
+    return { label, url };
+  }
+
+  /**
+   * @param {CareerPath} path
+   * @returns {GuidedModePlan}
+   */
+  function buildGuidedModePlan(path) {
+    const topTool = (path.tools || [])[0] || null;
+    const topTech = (path.technologies || [])[0] || null;
+    const topProject = (path.projects || [])[0] || "Ship a small proof artifact (demo + write-up).";
+
+    const guideBase =
+      "https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/blob/main/community_guides/";
+    const tracksBase =
+      "https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/tree/main/projects/tracks";
+    const templatesBase =
+      "https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/tree/main/templates";
+
+    const commonLinks = [
+      _link("How to use the graph", guideBase + "HOW_TO_USE_THE_GRAPH.md"),
+      _link("Weekly system", guideBase + "WEEKLY_SYSTEM.md"),
+      _link("Project tracks", tracksBase),
+      _link("Templates", templatesBase),
+    ];
+
+    const sprint_7_days = [
+      {
+        day: 1,
+        title: "Understand the problem",
+        action: "Write a 1-page problem statement (what, why, who, success metric).",
+        output: "A short markdown note.",
+        links: [_link("START", "./START.html"), ...commonLinks],
+      },
+      {
+        day: 2,
+        title: "Set up tools",
+        action: `Install/test your basics${topTool ? ` (start with: ${topTool})` : ""}${topTech ? ` and ${topTech}` : ""}.`,
+        output: "Working environment + hello-world proof (screenshot).",
+        links: commonLinks,
+      },
+      {
+        day: 3,
+        title: "Build the first draft",
+        action: topProject,
+        output: "First working version (ugly is fine).",
+        links: [_link("Project pitch template", templatesBase + "/PROJECT_PITCH_TEMPLATE.md"), ...commonLinks],
+      },
+      {
+        day: 4,
+        title: "Stabilize",
+        action: "Fix the biggest bugs, add basic validation, and make output repeatable.",
+        output: "Stable version.",
+        links: commonLinks,
+      },
+      {
+        day: 5,
+        title: "Add clarity",
+        action: "Create a simple diagram + write a README that teaches a beginner.",
+        output: "Documented project (diagram + README).",
+        links: [_link("Project review template", templatesBase + "/PROJECT_REVIEW_TEMPLATE.md"), ...commonLinks],
+      },
+      {
+        day: 6,
+        title: "Polish",
+        action: "Improve usability/output. Add 2–3 screenshots or a short demo video.",
+        output: "Presentable demo.",
+        links: commonLinks,
+      },
+      {
+        day: 7,
+        title: "Publish + share",
+        action: "Publish and share: what you built, what you learned, what you’ll do next.",
+        output: "Public proof link.",
+        links: [_link("Discord", "https://discord.gg/8e4bQNknA"), ...commonLinks],
+      },
+    ];
+
+    // 30-day plan = 4-week structure with daily actions (kept light + repeatable).
+    const roadmap_30_days = [];
+    const days = 30;
+    for (let d = 1; d <= days; d++) {
+      const week = Math.floor((d - 1) / 7) + 1;
+      const dayInWeek = ((d - 1) % 7) + 1;
+
+      let title = "";
+      let action = "";
+      let output = "";
+      /** @type {SprintLink[]} */
+      let links = [...commonLinks];
+
+      if (week === 1) {
+        title = dayInWeek <= 2 ? "Clarity + setup" : "First draft";
+        action =
+          dayInWeek === 1
+            ? "Pick 1 pillar, 1 project track, and write a 1-page problem statement."
+            : dayInWeek === 2
+            ? `Set up tools + data. Confirm you can produce one output end-to-end.${topTool ? ` (Try: ${topTool})` : ""}`
+            : dayInWeek === 3
+            ? topProject
+            : dayInWeek === 4
+            ? "Turn the draft into a repeatable workflow (steps, inputs, outputs)."
+            : dayInWeek === 5
+            ? "Add a diagram of the system (boxes + arrows is enough)."
+            : dayInWeek === 6
+            ? "Write README v1: what it does, how to run it, demo proof."
+            : "Share a progress update (what’s done / blocked / next).";
+        output =
+          dayInWeek <= 2
+            ? "Setup complete + notes."
+            : dayInWeek <= 4
+            ? "Working draft."
+            : dayInWeek === 5
+            ? "Diagram."
+            : dayInWeek === 6
+            ? "README v1."
+            : "Progress post.";
+      } else if (week === 2) {
+        title = "Iteration + reliability";
+        action =
+          dayInWeek === 1
+            ? "Identify top 3 failure cases and handle them."
+            : dayInWeek === 2
+            ? "Improve data quality and add sanity checks."
+            : dayInWeek === 3
+            ? "Refactor for clarity (functions/modules)."
+            : dayInWeek === 4
+            ? "Add a basic test or validation checklist."
+            : dayInWeek === 5
+            ? "Add screenshots + demo recording."
+            : dayInWeek === 6
+            ? "Write README v2: add troubleshooting + limitations."
+            : "Share a week-2 update + ask one focused question.";
+        output =
+          dayInWeek <= 4 ? "More reliable system." : dayInWeek <= 6 ? "Better proof + docs." : "Community feedback.";
+      } else if (week === 3) {
+        title = "Portfolio + legibility";
+        action =
+          dayInWeek === 1
+            ? "Write a 1-page case study: problem → system → result."
+            : dayInWeek === 2
+            ? "Create a clean project page (README + diagrams + links)."
+            : dayInWeek === 3
+            ? "Find 3 adjacent roles in the graph and note what differs."
+            : dayInWeek === 4
+            ? "Add one improvement based on adjacency (tool, tech, metric)."
+            : dayInWeek === 5
+            ? "Create a short public explanation (post/short video)."
+            : dayInWeek === 6
+            ? "Prepare a 'pitch': what you can do + proof link."
+            : "Share the pitch in Discord and request review.";
+        output = dayInWeek <= 2 ? "Portfolio asset." : dayInWeek <= 5 ? "Visibility asset." : "Pitch + feedback.";
+      } else {
+        title = "Opportunity + next sprint";
+        action =
+          dayInWeek === 1
+            ? "Choose a monetization route (micro-gig, internship, role, consulting)."
+            : dayInWeek === 2
+            ? "Draft 5 outreach messages (client/employer/mentor)."
+            : dayInWeek === 3
+            ? "Apply/ship: send 2–3 messages + share proof."
+            : dayInWeek === 4
+            ? "Upgrade the project with one measurable improvement."
+            : dayInWeek === 5
+            ? "Write a “what I learned” post (lessons + next steps)."
+            : dayInWeek === 6
+            ? "Pick the next sprint project based on feedback."
+            : "Start sprint #2 (repeat the loop).";
+        output = dayInWeek <= 3 ? "Outreach attempts." : dayInWeek <= 6 ? "Improved proof." : "Next sprint started.";
+        links = [_link("From skills to income", guideBase + "FROM_SKILLS_TO_INCOME.md"), ...links];
+      }
+
+      roadmap_30_days.push({ day: d, title, action, output, links });
+    }
+
+    return { sprint_7_days, roadmap_30_days };
+  }
+
+  /**
+   * @param {{path: CareerPath, guided: GuidedModePlan, dayDone: Record<number, boolean>, shareUrl: string}} params
+   * @returns {string}
+   */
+  function buildDiscordUpdate(params) {
+    const role = params.path.role;
+    const doneCount = Object.values(params.dayDone || {}).filter(Boolean).length;
+    const nextDay = (() => {
+      for (const d of params.guided.sprint_7_days) {
+        if (!params.dayDone[d.day]) return d;
+      }
+      return null;
+    })();
+
+    const topPillar = (params.path.pillars || [])[0]?.label || "Computing";
+    const firstStep = params.path.best_first_step || "Ship one proof artifact this week.";
+
+    const lines = [];
+    lines.push(`**Sprint Update — ${role}**`);
+    lines.push(`Pillar: **${topPillar}**`);
+    lines.push(`Progress: **${doneCount}/7 days**`);
+    lines.push(`Best first step: ${firstStep}`);
+    if (nextDay) {
+      lines.push(`Next: **Day ${nextDay.day} — ${nextDay.title}**`);
+      lines.push(nextDay.action);
+    }
+    lines.push(`Share: ${params.shareUrl}`);
+    return lines.join("\n");
+  }
+
   window.PathGen = {
     loadOnetIndex,
     generateCareerPath,
     toMarkdown,
+    buildGuidedModePlan,
+    buildDiscordUpdate,
   };
 })();
-    if ((path.onet_skills || []).length) {
-      lines.push(`## O*NET Skills (Importance)`);
-      lines.push(path.onet_skills.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
-      lines.push("");
-    }
-    if ((path.onet_knowledge || []).length) {
-      lines.push(`## O*NET Knowledge (Importance)`);
-      lines.push(path.onet_knowledge.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
-      lines.push("");
-    }
-    if ((path.onet_abilities || []).length) {
-      lines.push(`## O*NET Abilities (Importance)`);
-      lines.push(path.onet_abilities.map((x) => `- ${x.name} (${x.importance.toFixed(2)})`).join("\n"));
-      lines.push("");
-    }

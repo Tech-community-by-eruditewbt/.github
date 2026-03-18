@@ -34,6 +34,7 @@
   let pinnedId = null;
   let lastPlanMd = "";
   let lastPathObj = null;
+  let lastGuided = null;
 
   // view transform (world -> screen)
   let scale = 1;
@@ -371,9 +372,12 @@
           pathEl.textContent = "No path available for this node.";
           return;
         }
+        const guided = typeof pg.buildGuidedModePlan === "function" ? pg.buildGuidedModePlan(path) : null;
         lastPlanMd = pg.toMarkdown(path);
         lastPathObj = path;
+        lastGuided = guided;
         pathEl.innerHTML = renderPathHtml(path);
+        if (guided) renderGuidedMode(n.id, path, guided);
       }
     }
   }
@@ -471,6 +475,9 @@
         <button class="miniBtn" type="button" data-copy-plan="1">Copy Plan</button>
         <button class="miniBtn" type="button" data-download-plan="md">Download .md</button>
         <button class="miniBtn" type="button" data-download-plan="json">Download .json</button>
+        <button class="miniBtn" type="button" data-start-sprint="7">Start 7‑Day Sprint</button>
+        <button class="miniBtn" type="button" data-toggle-roadmap="30">30‑Day Mode</button>
+        <button class="miniBtn" type="button" data-copy-discord="1">Copy Discord Update</button>
         <a class="miniBtn" href="https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/tree/main/projects/tracks" target="_blank" rel="noreferrer">Open Tracks</a>
         <a class="miniBtn" href="https://github.com/eruditewbt/Tech_Community_by_EruditeWBT/blob/main/community_guides/HOW_TO_USE_THE_GRAPH.md" target="_blank" rel="noreferrer">Guide</a>
         <a class="miniBtn" href="./START.html">Start</a>
@@ -518,6 +525,90 @@
 
       <div class="pathH">Provenance</div>
       <div style="opacity:.78">${escape(path.provenance.scope)}<br/>${escape(path.provenance.note)}<br/><i>Not career advice.</i></div>
+
+      <div id="guided" style="margin-top:12px"></div>
+    `;
+  }
+
+  function sprintStorageKey(occId) {
+    return `ewbt:sprint7:${occId}`;
+  }
+
+  function loadSprintProgress(occId) {
+    try {
+      const raw = localStorage.getItem(sprintStorageKey(occId));
+      if (!raw) return { startedAt: null, dayDone: {} };
+      const j = JSON.parse(raw);
+      if (!j || typeof j !== "object") return { startedAt: null, dayDone: {} };
+      return { startedAt: j.startedAt || null, dayDone: j.dayDone || {} };
+    } catch (_) {
+      return { startedAt: null, dayDone: {} };
+    }
+  }
+
+  function saveSprintProgress(occId, st) {
+    try {
+      localStorage.setItem(sprintStorageKey(occId), JSON.stringify(st));
+    } catch (_) {}
+  }
+
+  function renderGuidedMode(occId, path, guided) {
+    const host = document.getElementById("guided");
+    if (!host) return;
+
+    const st = loadSprintProgress(occId);
+    const done = st.dayDone || {};
+
+    const doneCount = Object.values(done).filter(Boolean).length;
+    const started = st.startedAt ? new Date(st.startedAt).toLocaleDateString() : null;
+
+    const rows = guided.sprint_7_days
+      .map((d) => {
+        const checked = !!done[d.day];
+        const links = (d.links || [])
+          .slice(0, 3)
+          .map((l) => `<a class="inline" href="${l.url}" ${l.url.startsWith("http") ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(l.label)}</a>`)
+          .join(" · ");
+        return `
+          <div class="sprintRow">
+            <label class="sprintCheck">
+              <input type="checkbox" data-sprint-day="${d.day}" ${checked ? "checked" : ""} />
+              <span><b>Day ${d.day}:</b> ${escapeHtml(d.title)}</span>
+            </label>
+            <div class="sprintMeta">
+              <div><span style="opacity:.8">Action:</span> ${escapeHtml(d.action)}</div>
+              <div><span style="opacity:.8">Output:</span> ${escapeHtml(d.output)}</div>
+              <div class="sprintLinks">${links}</div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    // 30-day: show week headers + bullets (no checkboxes by default)
+    const roadmap = guided.roadmap_30_days || [];
+    const weeks = [];
+    for (let w = 1; w <= 5; w++) {
+      const slice = roadmap.filter((x) => Math.floor((x.day - 1) / 7) + 1 === w);
+      if (!slice.length) continue;
+      const lines = slice
+        .slice(0, 7)
+        .map((d) => `<li><b>Day ${d.day}:</b> ${escapeHtml(d.action)} <span style="opacity:.7">(${escapeHtml(d.output)})</span></li>`)
+        .join("");
+      weeks.push(`<div class="pathH">Week ${w}</div><ul class="list">${lines}</ul>`);
+    }
+
+    host.innerHTML = `
+      <div class="pathH">Guided Mode</div>
+      <div style="opacity:.85">
+        <b>7‑Day Sprint:</b> ${doneCount}/7 complete${started ? ` · started ${started}` : ""}<br/>
+        This is the behavior engine: do one thing <b>today</b>, ship proof weekly.
+      </div>
+      <div class="sprintWrap">${rows}</div>
+      <details class="roadmapDetails" id="roadmapDetails">
+        <summary class="roadmapSummary">30‑Day Progression (structured)</summary>
+        <div style="margin-top:10px">${weeks.join("")}</div>
+      </details>
     `;
   }
 
@@ -616,6 +707,66 @@
       URL.revokeObjectURL(a.href);
       return;
     }
+  });
+
+  // Guided mode controls
+  document.addEventListener("click", async (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+
+    const startBtn = t.closest("[data-start-sprint]");
+    if (startBtn) {
+      if (!pinnedId || !lastGuided) return;
+      const st = loadSprintProgress(pinnedId);
+      st.startedAt = new Date().toISOString();
+      st.dayDone = {};
+      saveSprintProgress(pinnedId, st);
+      renderGuidedMode(pinnedId, lastPathObj, lastGuided);
+      return;
+    }
+
+    const toggleBtn = t.closest("[data-toggle-roadmap]");
+    if (toggleBtn) {
+      const det = document.getElementById("roadmapDetails");
+      if (det && det.tagName === "DETAILS") det.open = !det.open;
+      return;
+    }
+
+    const discBtn = t.closest("[data-copy-discord]");
+    if (discBtn) {
+      if (!pinnedId || !lastPathObj || !lastGuided) return;
+      const pg = window.PathGen;
+      if (!pg || typeof pg.buildDiscordUpdate !== "function") return;
+      const st = loadSprintProgress(pinnedId);
+      const shareUrl = location.href;
+      const msg = pg.buildDiscordUpdate({ path: lastPathObj, guided: lastGuided, dayDone: st.dayDone || {}, shareUrl });
+      try {
+        await navigator.clipboard.writeText(msg);
+        if (countsEl) countsEl.textContent = "Discord update copied.";
+        window.setTimeout(() => {
+          if (countsEl) countsEl.textContent = `${visibleNodes().length} nodes shown · ${visibleLinks(visibleNodes()).length} links shown`;
+        }, 1200);
+      } catch (_) {
+        if (countsEl) countsEl.textContent = "Copy failed.";
+      }
+      return;
+    }
+  });
+
+  document.addEventListener("change", (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+    const cb = t.closest("[data-sprint-day]");
+    if (!cb) return;
+    if (!pinnedId || !lastGuided) return;
+    const day = Number(cb.getAttribute("data-sprint-day"));
+    if (!Number.isFinite(day)) return;
+    const st = loadSprintProgress(pinnedId);
+    st.startedAt = st.startedAt || new Date().toISOString();
+    st.dayDone = st.dayDone || {};
+    st.dayDone[day] = cb.checked;
+    saveSprintProgress(pinnedId, st);
+    renderGuidedMode(pinnedId, lastPathObj, lastGuided);
   });
 
   // interactions
