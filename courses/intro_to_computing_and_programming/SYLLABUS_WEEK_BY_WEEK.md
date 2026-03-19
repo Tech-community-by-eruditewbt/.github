@@ -58,89 +58,104 @@ Week 9
 - Deliverable: setup proof (screenshots + versions)
 
 Week 10
-- Session A: permissions, users, files (intro); why “admin” matters
-- Session B: practice: permissions scenarios (conceptual)
-- Deliverable: short writeup: “permissions explained”
+- Session A: shells across platforms (PowerShell vs cmd vs bash/zsh); why terminals differ
+- Session B: terminal basics lab:
+  - Windows: PowerShell + `cmd.exe`
+  - Linux/macOS: bash/zsh
+  - Android: Termux (if applicable)
+- Deliverable: CLI worksheet part 2 + “my terminal cheat sheet”
 
-## Weeks 11–12: Networking Basics
+## Weeks 11–12: Editors/IDEs + Git (Tooling Bootcamp)
 
 Week 11
+- Session A: editor vs IDE; VS Code setup; extensions; formatting; integrated terminal
+- Session B: build workflow: run, debug, lint/format (basic), organize files
+- Deliverable: VS Code setup proof + a tiny project with clean structure
+
+Week 12
+- Session A: Git mental model (repo, commit, branch, remote); why version control exists
+- Session B: Git lab: init repo → commits → branch → merge → push to GitHub
+- Deliverable: a repo with 3+ commits + `README.md` + `.gitignore`
+
+## Weeks 13–14: Networking Basics
+
+Week 13
 - Session A: IP, DNS, HTTP; client/server
 - Session B: inspect a request; curl/wget (or browser devtools)
 - Deliverable: request flow diagram + notes
 
-Week 12
+Week 14
 - Session A: latency, reliability, caching; why “internet slow” happens
 - Session B: debugging checklist for connectivity
 - Deliverable: network troubleshooting checklist
 
-## Weeks 13–18: Programming Foundations (Python)
+## Weeks 15–20: Programming Foundations (Python)
 
-Week 13
+Week 15
 - Session A: what programming is; variables; input/output
 - Session B: write/run “Hello, world” + basic calculator
 - Deliverable: `hello_world.py` + `calculator.py`
 
-Week 14
+Week 16
 - Session A: types; strings/numbers; errors; debugging mindset
 - Session B: exercises set 1 (10 problems)
 - Deliverable: exercises folder + notes
 
-Week 15
+Week 17
 - Session A: conditions (if/else) + boolean logic
 - Session B: build a text quiz
 - Deliverable: quiz program + README
 
-Week 16
+Week 18
 - Session A: loops; iteration; counting patterns
 - Session B: build “number guessing” game
 - Deliverable: guessing game + test cases
 
-Week 17
+Week 19
 - Session A: functions; decomposition; modules
 - Session B: refactor older projects into functions
 - Deliverable: refactor diff + explanation
 
-Week 18
+Week 20
 - Session A: lists/dicts; reading/writing files; JSON
 - Session B: mini-project #1: file organizer or simple dataset report
 - Deliverable: mini-project repo + demo notes
 
-## Weeks 19–21: How Languages Work (Under the Hood)
+## Weeks 21–23: How Languages Work (Under the Hood)
 
-Week 19
+Week 21
 - Session A: compiler vs interpreter; runtime; standard library
 - Session B: run “Hello world” in Python/JS/C (optional) + compare
 - Deliverable: comparison table + diagram
 
-Week 20
+Week 22
 - Session A: memory basics (concepts); stack vs heap; references
 - Session B: debugging practice: trace execution and state
 - Deliverable: annotated trace of a program
 
-Week 21
+Week 23
 - Session A: libraries and packages; dependency thinking
 - Session B: install a package; use it; document it
 - Deliverable: “dependency note” + sample usage
 
-## Weeks 22–24: Projects + Proof (Portfolio Layer)
+## Weeks 24–26: Projects + Proof (Portfolio Layer)
 
-Week 22
+Week 24
 - Session A: what makes a good project; readmes; diagrams; demos
 - Session B: choose capstone idea; write problem statement
 - Deliverable: capstone proposal (1 page)
 
-Week 23
+Week 25
 - Session A: project architecture (simple); milestones
 - Session B: build sprint 1 (MVP)
 - Deliverable: MVP + screenshots
 
-Week 24
+Week 26
 - Session A: polish; reliability; limitations
 - Session B: publish + share; peer review
 - Deliverable: final capstone v1 + demo + retrospective
 
-## Optional Extension (Weeks 25–36)
+## Optional Extension (Weeks 27–36)
 
 Use these weeks to deepen based on interest:
 
@@ -150,4 +165,3 @@ Use these weeks to deepen based on interest:
 - Intro cybersecurity
 - Intro cloud deployment
 - Survey: quantum computing (conceptual)
-

@@ -36,10 +36,23 @@ Deliverables:
 - The terminal as a “power tool”
 - Installing software and understanding PATH
 - File structure and permissions (intro)
+- Shells across platforms:
+  - Windows: PowerShell, `cmd.exe`, `.bat`
+  - Linux/macOS: bash/zsh, shell scripts
+  - Android: Termux (bash + package manager)
+- Editors/IDEs:
+  - what an editor is vs an IDE
+  - VS Code setup, extensions, formatters, terminals
+  - debugging basics (breakpoints, stepping) when ready
+- Git fundamentals:
+  - repo, commit, branch, remote
+  - how to collaborate safely (pull, push, PR)
 
 Deliverables:
 - CLI worksheet (20 commands)
 - “Setup checklist” completed
+- Git proof: a repo with 3 commits and a clean README
+- Editor proof: VS Code configured + screenshot + settings export
 
 ## Module D — How Computers Communicate (Networking Basics)
 
@@ -105,3 +118,19 @@ Deliverables:
 Deliverables:
 - “Computing types” comparison table + diagram
 
+## Optional Module J — Tooling & Automation (Practical Power)
+
+This module turns “I can code” into “I can work like a professional”.
+
+- Bash scripting basics (variables, pipes, exit codes)
+- Windows batch basics (`.bat`), plus when to use PowerShell instead
+- Termux workflow on Android (git + python + node basics)
+- Project hygiene:
+  - `.gitignore`
+  - `README` conventions
+  - folder structure
+  - reproducible runs (one command)
+
+Deliverables:
+- A `scripts/` folder with one bash script and one `.bat` script that automate a real task
+- A published “setup guide” for your device (Windows/Linux/macOS/Android)

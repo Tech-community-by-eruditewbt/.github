@@ -7,6 +7,8 @@ These labs are designed to be short and repeatable.
 - Lab F1: File management drill (create/move/rename/search)
 - Lab F2: Software install drill (download → install → verify version)
 - Lab F3: Inspect system processes (what runs when you open an app)
+- Lab F4: Editor/IDE setup (VS Code): open folder, run file, format, terminal
+- Lab F5: Git basics: init → add → commit → branch → merge → push
 
 ## Networking Labs
 
@@ -26,4 +28,3 @@ These labs are designed to be short and repeatable.
 
 - Lab U1: Compare “hello world” across 3 languages
 - Lab U2: Dependency install + documentation (one package)
-

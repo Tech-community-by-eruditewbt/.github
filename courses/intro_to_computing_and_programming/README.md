@@ -27,14 +27,15 @@ This is a complete foundations course designed for the community:
 - `MODULES.md`
 - `INSTRUCTOR_GUIDE.md`
 - `ASSESSMENT_RUBRICS.md`
+- `setup/` (Windows/macOS/Linux/Android Termux)
 - `templates/`
 - `diagrams/`
 - `labs/`
 - `projects/`
+- `tools/`
 
 ## Fast Start (For Instructors)
 
 1. Read `INSTRUCTOR_GUIDE.md`
 2. Pick the schedule in `SYLLABUS_WEEK_BY_WEEK.md`
 3. Use `templates/LESSON_PLAN_TEMPLATE.md` to run Session 1 this week
-
