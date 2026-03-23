@@ -54,8 +54,8 @@ Data sources & scope:
 
 Everyone begins with a shared foundation.
 
-![Engineering Tree](tree_v0/diagrams/engineering_tree_styled.png)
-![Engineering Tree](tree_v0/diagrams/engineering_tree_v0.png)
+![Engineering Tree](../tree_v0/diagrams/engineering_tree_styled.png)
+![Engineering Tree](../tree_v0/diagrams/engineering_tree_v0.png)
 
 Then members branch into:
 
@@ -72,7 +72,7 @@ projects → proof → monetization → opportunity.
 
 ## Identity Evolution
 
-![Identity System](tree_v0/diagrams/identity_evolution.png)
+![Identity System](../tree_v0/diagrams/identity_evolution.png)
 
 Members progress through stages:
 
@@ -82,7 +82,7 @@ Explorer → Apprentice → Builder → Engineer → Architect → Founder.
 
 ## Monetization Path
 
-![Monetization Ladder](tree_v0/diagrams/monetization_ladder.png)
+![Monetization Ladder](../tree_v0/diagrams/monetization_ladder.png)
 
 Skills become income through:
 
@@ -90,7 +90,7 @@ Freelancing → Consulting → Products → Startups.
 
 ## Combined system diagram
 
-![Combined system diagram](tree_v0/diagrams/combined_system_diagram.png)
+![Combined system diagram](../tree_v0/diagrams/combined_system_diagram.png)
 
 ---
 
